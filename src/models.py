@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash,check_password_hash
 
 db = SQLAlchemy()
 
@@ -17,3 +18,19 @@ class User(db.Model):
             "email": self.email,
             # do not serialize the password, its a security breach
         }
+
+    def __init__(self, body):
+        self.email = body['email']
+        self.salt= os.urandom(16).hex()
+        self.hashed_password=self.set_password(body['password'])
+
+#estoo es para crear el usuario
+    @classmethod
+    def create(cls,body):
+        return new_user=User(body)
+
+    def set_password(self):
+        return generate_password_hash(
+            self.salt, 
+            password
+            )
