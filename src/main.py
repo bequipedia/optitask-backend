@@ -74,10 +74,10 @@ def handle_login():
     password = params.get('password', None)
 
     if not email:
-        return jsonify({"msg": "Missing email parameter / Falta el parámetro de correo electrónico"}), 400
+        return jsonify({"msg": "Missing email parameter / Falta el parametro de correo electronico"}), 400
 
     if not password:
-        return jsonify({"msg": "Missing password parameter / Falta el parámetro de contraseña"}), 400
+        return jsonify({"msg": "Missing password parameter / Falta el parametro de contrasena"}), 400
     user = User.query.filter_by(email=email).one_or_none()
 
     if not user:
@@ -98,12 +98,20 @@ def handle_seguro():
     # will return the identity of the token.
     return jsonify({"msg":f"Hello, {email}"})
 
-# this only runs if `$ python src/main.py` is executed
+#For the Logout function, it is not necessary to do it in the backend, 
+#because the Logout will be done directly in the frontend.
+
+#Para la funcion Logout, no es necesario hacerla en el backend,
+#debido que el Logout se hara directamente en el frontend
+
+#this only runs if `$ python src/main.py` is executed.
+#Esto solo se ejecuta si se ejecuta `$ python src / main.py`.
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=PORT, debug=False)
 
-# this only runs if `$ python src/main.py` is executed
+# this only runs if `$ python src/main.py` is executed.
+#Esto solo se ejecuta si se ejecuta `$ python src / main.py`.
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=PORT, debug=False)
