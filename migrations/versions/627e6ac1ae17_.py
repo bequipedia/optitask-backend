@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 96b3449ba299
+Revision ID: 627e6ac1ae17
 Revises: 
-Create Date: 2021-02-09 20:05:01.270213
+Create Date: 2021-02-10 18:27:43.577065
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '96b3449ba299'
+revision = '627e6ac1ae17'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,19 +23,20 @@ def upgrade():
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('name', sa.String(length=20), nullable=True),
     sa.Column('last_name', sa.String(length=20), nullable=True),
-    sa.Column('nickname', sa.String(length=20), nullable=False),
+    sa.Column('user_name', sa.String(length=20), nullable=False),
     sa.Column('cedula_rif', sa.String(length=20), nullable=True),
     sa.Column('country', sa.String(length=120), nullable=True),
     sa.Column('region_state', sa.String(length=120), nullable=True),
     sa.Column('municipality', sa.String(length=120), nullable=True),
-    sa.Column('password', sa.String(length=80), nullable=False),
+    sa.Column('hashed_password', sa.String(length=120), nullable=False),
+    sa.Column('salt', sa.String(length=120), nullable=False),
     sa.Column('url', sa.String(length=500), nullable=True),
     sa.Column('url_image', sa.String(length=500), nullable=True),
     sa.Column('user_registered', sa.String(length=50), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
-    sa.UniqueConstraint('nickname'),
-    sa.UniqueConstraint('url')
+    sa.UniqueConstraint('url'),
+    sa.UniqueConstraint('user_name')
     )
     # ### end Alembic commands ###
 

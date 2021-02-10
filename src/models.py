@@ -20,28 +20,40 @@ class User(db.Model):
     url=db.Column(db.String(500), unique=True)
     url_image=db.Column(db.String(500))
     user_registered=db.Column(db.String(50))
-    
-    def __init__(self,data):
-      self.email=data ['email']
-      self.salt=b64encode(os.urandom(4)).decode("utf-8")
-      self.hashed_password=self.set_password(data['password'])
-    
+
+#estoo es para crear el usuario
     @classmethod
-    def create(cls, data):
-        user = cls(data)
-        db.session.add(user)
+    def create(cls,**kwargs):
+        new_user=cls(kwargs)
+        db.session.add(new_user)
         db.session.commit()
-        return user
+        return new_user
+    
+    def __init__(self,body):
+        self.email=body ['email']
+        self.name=body['name'] 
+        self.last_name=body['last_name']
+        self.user_name=body['user_name']
+        self.cedula_rif=body['cedula_rif']
+        self.country=body['country']
+        self.region_state=body['region_state']
+        self.municipality=body['municipality']
+        self.hashed_password=self.set_password(body['password'])
+        self.salt=b64encode(os.urandom(4)).decode("utf-8")
+        self.url=body['url']
+        self.url_image=body['url_image']
+        self.user_registered=body['user_registered']       
+
     def set_password(self, password):
         return generate_password_hash(
             f"{password}{self.salt}"
         )
+
     def check_password(self, password):
         return check_password_hash(
             self.hashed_password,
             f"{password}{self.salt}"
         )
-
 
     def __repr__(self):
          return '<User %r>' % self.username
@@ -59,21 +71,3 @@ class User(db.Model):
             "region_state":self.region_state,
             "municipality":self.municipality
         }
-    
-
-
-# class User(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     email = db.Column(db.String(120), unique=True, nullable=False)
-#     password = db.Column(db.String(80), unique=False, nullable=False)
-#     is_active = db.Column(db.Boolean(), unique=False, nullable=False)
-
-#     def __repr__(self):
-#         return '<User %r>' % self.username
-
-#     def serialize(self):
-#         return {
-#             "id": self.id,
-#             "email": self.email,
-#             # do not serialize the password, its a security breach
-#         }
