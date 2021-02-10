@@ -58,25 +58,22 @@ def add_new_user():
         if 'password' not in body:
             raise APIException("You need to specify the name", status_code=400)
     else: return "error in body, is not a dictionary"
-    user1 = User(
+    user1 = User.create(
         email=body['email'],
         name=body['name'] if 'name' in body else None,
         last_name=body['last_name'] if 'last_name' in body else None,
         user_name=body['user_name'],
-        password=body['password']
+        password=body['password'],
         cedula_rif=None,
         country=body['country'] if 'country' in body else None,
         region_state=body['region_state'] if 'region_state' in body else None,
         municipality=None,
-        url=BASE_URL+"/users/"+nickname,#revisar construcción de url única para cada user
+        url=BASE_URL+"/users/"+body['user_name'],#revisar construcción de url única para cada user
         url_image=None,#Esto debemos cambiarlo luego por una imagen predeterminada
-        user_registered=time.strftime("%c")
-    db.session.add(user1)
-    db.session.commit()
-    return "ok", 200
+        user_registered=time.strftime("%c"))
+    return user1.serialize(), 200
 
-def handle_login():
-    @app.route('/login', methods=['POST'])
+@app.route('/login', methods=['POST'])
 def login():
     if not request.is_json:
         return jsonify({"msg": "Missing JSON in request"}), 400
