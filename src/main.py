@@ -16,7 +16,7 @@ from models import db, User
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity)
-#from models import Person
+
 
 # from models import Person.
 # Desde models importar Person.
@@ -31,6 +31,7 @@ db.init_app(app)
 CORS(app)
 setup_admin(app)
 BASE_URL="http://localhost:3000/"
+
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
