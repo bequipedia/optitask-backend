@@ -91,26 +91,19 @@ def handle_login():
     """
     if not request.is_json:
         return jsonify({"msg": "Missing JSON in request / Falta JSON en la solicitud"}), 400
-
     params = request.get_json()
     email = params.get('email', None)
     password = params.get('password', None)
-    
-
     if not email:
         return jsonify({"msg": "Missing email parameter / Falta el parametro de correo electronico"}), 400
-
     if not password:
         return jsonify({"msg": "Missing password parameter / Falta el parametro de contrasena"}), 400
     user = User.query.filter_by(email=email).one_or_none()
-
     if not user:
         return jsonify({"msg": "User does not exist / El usuario no existe"}), 404
-
     if user.check_password(password):
         response = {'jwt': create_access_token(identity=user.email)}
         return jsonify(response), 200
-
     else:
         return jsonify({"msg": "Bad credentials / Credenciales incorrectas"}), 401
 
