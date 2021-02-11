@@ -17,7 +17,6 @@ from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity)
 
-
 # from models import Person.
 # Desde models importar Person.
 app = Flask(__name__)
