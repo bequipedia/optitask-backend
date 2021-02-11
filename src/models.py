@@ -1,8 +1,15 @@
+#From this line start de OptiTask Project Backend.
+#Desde esta linea comienza el proyecto de OptiTask Backend.
+
+"""
+This module takes care of starting the API Server, Loading the DB and Adding the endpoints.
+Este módulo se encarga de crear la clase User, cargar la base de datos y agregar los puntos finales.
+"""
+
 from flask_sqlalchemy import SQLAlchemy
 import os
-from werkzeug.security import generate_password_hash,check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from base64 import b64encode
-
 db = SQLAlchemy()
 
 class User(db.Model):
@@ -21,7 +28,7 @@ class User(db.Model):
     url_image=db.Column(db.String(500))
     user_registered=db.Column(db.String(50))
 
-#estoo es para crear el usuario
+#Esto es para crear el usuario
     @classmethod
     def create(cls,**kwargs):
         new_user=cls(kwargs)
