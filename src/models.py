@@ -45,8 +45,8 @@ class User(db.Model):
         self.country=body['country']
         self.region_state=body['region_state']
         self.municipality=body['municipality']
-        self.hashed_password=self.set_password(body['password'])
         self.salt=b64encode(os.urandom(4)).decode("utf-8")
+        self.hashed_password=self.set_password(body['password'])
         self.url=body['url']
         self.url_image=body['url_image']
         self.user_registered=body['user_registered']       
@@ -57,6 +57,7 @@ class User(db.Model):
         )
 
     def check_password(self, password):
+        print(f"este es el password:{password}")
         return check_password_hash(
             self.hashed_password,
             f"{password}{self.salt}"
