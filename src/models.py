@@ -29,7 +29,7 @@ class User(db.Model):
     url=db.Column(db.String(500), unique=True)
     url_image=db.Column(db.String(500))
     user_registered=db.Column(db.String(50))
-    groups=db.relationship("User_group",backref="user")
+    groups=db.relationship("PersonGroup",backref="user")
 
 #Esto es para crear el usuario
     @classmethod
@@ -90,7 +90,7 @@ class Group(db.Model):
     target_time=db.Column(db.String(120))
     group_url=db.Column(db.String(500),nullable=False, unique=True)
     url_image=db.Column(db.String(500))
-    users=db.relationship("User_group",backref="group")
+    users=db.relationship("PersonGroup",backref="group")
 
     def __init__(self,body):
         self.group_name=body['group_name']
@@ -111,13 +111,13 @@ class Group(db.Model):
         }
 
 
-class User_group:
+class PersonGroup(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
     group_id=db.Column(db.Integer,db.ForeignKey('group.id'))
 
 
-class Sale:
+class Sale(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     date=db.Column(db.String(120),nullable=False)
     description=db.Column(db.String(300),nullable=False)
@@ -149,7 +149,7 @@ class Sale:
             "usd_amount":self.usd_amount
         }
     
-class Expense:
+class Expense(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     date=db.Column(db.String(120),nullable=False)
     description=db.Column(db.String(300),nullable=False)
@@ -184,12 +184,12 @@ class Expense:
             "usd_amount":self.usd_amount
         }
     
-class Task:
+class Task(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     label_task=db.Column(db.String(120),nullable=False)
     status_text=db.Column(db.String(300),nullable=False)
     status_task=db.Column(db.Boolean,nullable=False)
-    top_date=db.Column(db.String,nullable=False)
+    top_date=db.Column(db.String(120),nullable=False)
     init_date=db.Column(db.String(120),nullable=False)
     
     user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
