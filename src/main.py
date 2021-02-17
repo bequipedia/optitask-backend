@@ -73,6 +73,7 @@ def add_new_user():
         password=body['password'],
         cedula_rif=None,
         country=body['country'] if 'country' in body else None,
+        country_code=body['country_code'] if 'country_code' in body else None,
         region_state=body['region_state'] if 'region_state' in body else None,
         municipality=None,
         url=BASE_URL+"/users/"+body['user_name'],#revisar construcción de url única para cada user

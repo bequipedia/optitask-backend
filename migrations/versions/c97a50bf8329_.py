@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 667e97dacd09
+Revision ID: c97a50bf8329
 Revises: 
-Create Date: 2021-02-10 18:56:46.180017
+Create Date: 2021-02-15 21:05:59.996889
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '667e97dacd09'
+revision = 'c97a50bf8329'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -26,6 +26,7 @@ def upgrade():
     sa.Column('user_name', sa.String(length=20), nullable=False),
     sa.Column('cedula_rif', sa.String(length=20), nullable=True),
     sa.Column('country', sa.String(length=120), nullable=True),
+    sa.Column('country_code', sa.String(length=3), nullable=False),
     sa.Column('region_state', sa.String(length=120), nullable=True),
     sa.Column('municipality', sa.String(length=120), nullable=True),
     sa.Column('hashed_password', sa.String(length=120), nullable=False),
@@ -34,6 +35,7 @@ def upgrade():
     sa.Column('url_image', sa.String(length=500), nullable=True),
     sa.Column('user_registered', sa.String(length=50), nullable=True),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('country_code'),
     sa.UniqueConstraint('email'),
     sa.UniqueConstraint('url'),
     sa.UniqueConstraint('user_name')

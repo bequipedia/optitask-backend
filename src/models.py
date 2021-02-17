@@ -21,6 +21,7 @@ class User(db.Model):
     user_name=db.Column(db.String(20), unique=True, nullable=False)
     cedula_rif=db.Column(db.String(20))
     country=db.Column(db.String(120))
+    country_code=db.Column(db.String(3), nullable=False)
     region_state=db.Column(db.String(120))
     municipality=db.Column(db.String(120))
     hashed_password=db.Column(db.String(120),unique=False, nullable=False)
@@ -45,6 +46,7 @@ class User(db.Model):
         self.user_name=body['user_name']
         self.cedula_rif=body['cedula_rif']
         self.country=body['country']
+        self.country_code['country_code']
         self.region_state=body['region_state']
         self.municipality=body['municipality']
         self.salt=b64encode(os.urandom(4)).decode("utf-8")
@@ -75,6 +77,7 @@ class User(db.Model):
             "user_name":self.user_name,
             "cedula_rif":self.cedula_rif,
             "country":self.country,
+            "country_code":self.country_code,
             "region_state":self.region_state,
             "municipality":self.municipality
         }
@@ -110,8 +113,8 @@ class Group(db.Model):
 
 class User_group:
     id=db.Column(db.Integer, primary_key=True)
-    user_id=db.Column(db.Integer, db.foreignKey('user.id'))
-    group_id=db.Column(db.Integer,db.foreignKey('group.id'))
+    user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
+    group_id=db.Column(db.Integer,db.ForeignKey('group.id'))
 
 
 class Sale:
@@ -123,8 +126,8 @@ class Sale:
     bank=db.Column(db.String(120),nullable=False)
     usd_amount=db.Column(db.Float,nullable=False)
 
-    user_id=db.Column(db.Integer, db.foreignKey('user.id'))
-    group_id=db.Column(db.Integer,db.foreignKey('group.id'))
+    user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
+    group_id=db.Column(db.Integer,db.ForeignKey('group.id'))
 
     def __init__(self,body):
         self.date=body['date']
@@ -156,8 +159,8 @@ class Expense:
     category=db.Column(db.String(120),nullable=False)
     provider=db.Column(db.String(120),nullable=False)
     
-    user_id=db.Column(db.Integer, db.foreignKey('user.id'))
-    group_id=db.Column(db.Integer,db.foreignKey('group.id'))
+    user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
+    group_id=db.Column(db.Integer,db.ForeignKey('group.id'))
 
     def __init__(self,body):
         self.date=body['date']
@@ -189,8 +192,8 @@ class Task:
     top_date=db.Column(db.String,nullable=False)
     init_date=db.Column(db.String(120),nullable=False)
     
-    user_id=db.Column(db.Integer, db.foreignKey('user.id'))
-    group_id=db.Column(db.Integer,db.foreignKey('group.id'))
+    user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
+    group_id=db.Column(db.Integer,db.ForeignKey('group.id'))
 
     def __init__(self,body):
         self.label_task=body['label_task']
