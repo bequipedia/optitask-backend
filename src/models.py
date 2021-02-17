@@ -13,6 +13,7 @@ from base64 import b64encode
 db = SQLAlchemy()
 
 class User(db.Model):
+
     id=db.Column(db.Integer,primary_key=True)
     email= db.Column(db.String(120),unique=True, nullable=False)
     name= db.Column(db.String (20))
@@ -27,6 +28,7 @@ class User(db.Model):
     url=db.Column(db.String(500), unique=True)
     url_image=db.Column(db.String(500))
     user_registered=db.Column(db.String(50))
+    groups=db.relationship("User_group",backref="user")
 
 #Esto es para crear el usuario
     @classmethod
@@ -75,4 +77,137 @@ class User(db.Model):
             "country":self.country,
             "region_state":self.region_state,
             "municipality":self.municipality
+        }
+
+class Group(db.Model):
+
+    id=db.Column(db.Integer,primary_key=True)
+    group_name= db.Column(db.String(120), nullable=False)
+    descripcion= db.Column(db.String(250))
+    target_time=db.Column(db.String(120))
+    group_url=db.Column(db.String(500),nullable=False, unique=True)
+    url_image=db.Column(db.String(500))
+    users=db.relationship("User_group",backref="group")
+
+    def __init__(self,body):
+        self.group_name=body['group_name']
+        self.description=body['description']
+        self.target_time=body['target_time']
+        self.group_url=body['group_url']
+        self.url_image=body['url_image']
+        
+
+    def serialize(self):
+        return {
+            "id":self.id,
+            "group_name":self.group_name,
+            "description":self.description,
+            "target_time":self.target_time,
+            "group_url":self.group_url,
+            "url_image":self.url_image
+        }
+
+
+class User_group:
+    id=db.Column(db.Integer, primary_key=True)
+    user_id=db.Column(db.Integer, db.foreignKey('user.id'))
+    group_id=db.Column(db.Integer,db.foreignKey('group.id'))
+
+
+class Sale:
+    id=db.Column(db.Integer, primary_key=True)
+    date=db.Column(db.String(120),nullable=False)
+    description=db.Column(db.String(300),nullable=False)
+    method_payment=db.Column(db.String(120),nullable=False)
+    amount=db.Column(db.String(120),nullable=False)
+    bank=db.Column(db.String(120),nullable=False)
+    usd_amount=db.Column(db.Float,nullable=False)
+
+    user_id=db.Column(db.Integer, db.foreignKey('user.id'))
+    group_id=db.Column(db.Integer,db.foreignKey('group.id'))
+
+    def __init__(self,body):
+        self.date=body['date']
+        self.description=body['description']
+        self.method_payment=body['method_payment']
+        self.amount=body['amount']
+        self.bank=body['bank']
+        self.usd_amount=body['usd_amount']
+        
+
+    def serialize(self):
+        return {
+            "id":self.id,
+            "date":self.date,
+            "description":self.description,
+            "method_payment":self.method_payment,
+            "amount":self.amount,
+            "bank":self.bank,
+            "usd_amount":self.usd_amount
+        }
+    
+class Expense:
+    id=db.Column(db.Integer, primary_key=True)
+    date=db.Column(db.String(120),nullable=False)
+    description=db.Column(db.String(300),nullable=False)
+    method_payment=db.Column(db.String(120),nullable=False)
+    usd_amount=db.Column(db.Float,nullable=False)
+    coin=db.Column(db.String(120),nullable=False)
+    category=db.Column(db.String(120),nullable=False)
+    provider=db.Column(db.String(120),nullable=False)
+    
+    user_id=db.Column(db.Integer, db.foreignKey('user.id'))
+    group_id=db.Column(db.Integer,db.foreignKey('group.id'))
+
+    def __init__(self,body):
+        self.date=body['date']
+        self.description=body['description']
+        self.method_payment=body['method_payment']
+        self.coin=body['coin']
+        self.category=body['category']
+        self.provider=body['provider']
+        self.usd_amount=body['usd_amount']
+        
+
+    def serialize(self):
+        return {
+            "id":self.id,
+            "date":self.date,
+            "description":self.description,
+            "method_payment":self.method_payment,
+            "coin":self.coin,
+            "category":self.category,
+            "provider":self.provider,
+            "usd_amount":self.usd_amount
+        }
+    
+class Task:
+    id=db.Column(db.Integer, primary_key=True)
+    label_task=db.Column(db.String(120),nullable=False)
+    status_text=db.Column(db.String(300),nullable=False)
+    status_task=db.Column(db.Boolean,nullable=False)
+    top_date=db.Column(db.String,nullable=False)
+    init_date=db.Column(db.String(120),nullable=False)
+    
+    user_id=db.Column(db.Integer, db.foreignKey('user.id'))
+    group_id=db.Column(db.Integer,db.foreignKey('group.id'))
+
+    def __init__(self,body):
+        self.label_task=body['label_task']
+        self.status_text=body['status_text']
+        self.status_task=body['status_task']
+        self.top_date=body['top_date']
+        self.init_date=body['init_date']
+
+        
+
+    def serialize(self):
+        return {
+            "id":self.id,
+            "label_task":self.label_task,
+            "status_text":self.status_text,
+            "status_task":self.status_task,
+            "top_date":self.top_date,
+            "init_date":self.init_date,
+
         }
