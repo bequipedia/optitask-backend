@@ -20,7 +20,7 @@ class User(db.Model):
     user_name=db.Column(db.String(20), unique=True, nullable=False)
     cedula_rif=db.Column(db.String(20))
     country=db.Column(db.String(120))
-    country_code=db.Column(db.String(3), unique=True, nullable=False)
+    country_code=db.Column(db.String(3), nullable=False)
     region_state=db.Column(db.String(120))
     municipality=db.Column(db.String(120))
     hashed_password=db.Column(db.String(120),unique=False, nullable=False)
@@ -44,7 +44,7 @@ class User(db.Model):
         self.user_name=body['user_name']
         self.cedula_rif=body['cedula_rif']
         self.country=body['country']
-        self.country_code['country_code']
+        self.country_code=body['country_code']
         self.region_state=body['region_state']
         self.municipality=body['municipality']
         self.salt=b64encode(os.urandom(4)).decode("utf-8")
