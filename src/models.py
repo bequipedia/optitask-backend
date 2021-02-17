@@ -46,7 +46,7 @@ class User(db.Model):
         self.user_name=body['user_name']
         self.cedula_rif=body['cedula_rif']
         self.country=body['country']
-        self.country_code['country_code']
+        self.country_code=body['country_code']
         self.region_state=body['region_state']
         self.municipality=body['municipality']
         self.salt=b64encode(os.urandom(4)).decode("utf-8")

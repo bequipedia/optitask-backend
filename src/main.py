@@ -29,7 +29,7 @@ MIGRATE = Migrate(app, db)
 db.init_app(app)
 CORS(app)
 setup_admin(app)
-BASE_URL="http://localhost:3000/"
+BASE_URL="http://localhost:8080/"
 
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
