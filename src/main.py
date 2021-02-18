@@ -12,7 +12,8 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User,Group
+from random import randint
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity)
@@ -121,7 +122,36 @@ def handle_seguro():
 
 #Para la funcion Logout, no es necesario hacerla en el backend,
 #debido que el Logout se hara directamente en el frontend
+@app.route('/groups', methods=['GET'])#endpoint para ver todos los grupos
+def handle_group():
+    groups = Group.query.all()
+    response_body= []
+    for group in groups:
+        response_body.append(group.serialize())
+    return jsonify(response_body),200
 
+@app.route('/groups', methods=['POST'])#Endpoint para crear un grupo
+def add_new_group():
+    body= request.get_json()
+    #validaciones de body para campos obligatorios
+    if isinstance (body,dict):
+        if body is None:
+            raise APIException("Please specify the request body as a json object", status_code=400)
+        if 'group_name' not in body:
+            raise APIException("You need to specify the name", status_code=400)
+
+    else: return "error in body, is not a dictionary"
+    url_group_random=""
+    for i in range(10):
+        url_group_random=url_group_random+str(randint(0,10))
+    group1 = User.create_group(
+        group_name=body['group_name'],
+        description=body['description'] if 'description' in body else None,
+        target_time=body['target_time'] if 'target_time' in body else None,
+        group_url=BASE_URL+"groups/"+body['group_name']+url_group_random,#revisar construcción de url única para cada user
+        url_image=None#Esto debemos cambiarlo luego por una imagen predeterminada
+    ) 
+    return group1.serialize(), 200
 #this only runs if `$ python src/main.py` is executed.
 #Esto solo se ejecuta si se ejecuta `$ python src / main.py`.
 if __name__ == '__main__':

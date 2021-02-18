@@ -29,6 +29,7 @@ class User(db.Model):
     url=db.Column(db.String(500), unique=True)
     url_image=db.Column(db.String(500))
     user_registered=db.Column(db.String(50))
+
     groups=db.relationship("PersonGroup",backref="user")
 
 #Esto es para crear el usuario
@@ -67,6 +68,12 @@ class User(db.Model):
             f"{password}{self.salt}"
         )
 
+    def create_group(**kwargs):
+        new_group=Group(kwargs)
+        db.session.add(new_group)
+        db.session.commit()
+        return new_group
+
     def serialize(self):
         return {
             "id": self.id,
@@ -86,11 +93,15 @@ class Group(db.Model):
 
     id=db.Column(db.Integer,primary_key=True)
     group_name= db.Column(db.String(120), nullable=False)
-    descripcion= db.Column(db.String(250))
+    description= db.Column(db.String(250))
     target_time=db.Column(db.String(120))
     group_url=db.Column(db.String(500),nullable=False, unique=True)
     url_image=db.Column(db.String(500))
+
     users=db.relationship("PersonGroup",backref="group")
+    expenses=db.relationship("Expense",backref="group")
+    sales=db.relationship("Sale",backref="group")
+    tasks=db.relationship("Task",backref="group")
 
     def __init__(self,body):
         self.group_name=body['group_name']
