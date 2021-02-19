@@ -12,7 +12,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User,Group
+from models import db, User,Group,Task
 from random import randint
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -122,13 +122,16 @@ def handle_seguro():
 
 #Para la funcion Logout, no es necesario hacerla en el backend,
 #debido que el Logout se hara directamente en el frontend
-@app.route('/groups', methods=['GET'])#endpoint para ver todos los grupos
-def handle_group():
-    groups = Group.query.all()
-    response_body= []
-    for group in groups:
-        response_body.append(group.serialize())
-    return jsonify(response_body),200
+
+#----------------------------------------------endpoint groups--------------------------------------------------------
+
+@app.route('/groups/<int:id_group>', methods=['GET'])#endpoint para ver los datos de un grupo
+def handle_one_group(id_group):
+    group = Group.query.get(id_group)
+    if group is None:
+        return "NO EXISTE", 404
+    else:
+        return jsonify(group.serialize()), 202
 
 @app.route('/groups', methods=['POST'])#Endpoint para crear un grupo
 def add_new_group():
@@ -139,19 +142,149 @@ def add_new_group():
             raise APIException("Please specify the request body as a json object", status_code=400)
         if 'group_name' not in body:
             raise APIException("You need to specify the name", status_code=400)
+        if 'user_admin_id' not in body:
+            raise APIException("You need to specify the id user", status_code=400)
 
     else: return "error in body, is not a dictionary"
     url_group_random=""
     for i in range(10):
         url_group_random=url_group_random+str(randint(0,10))
-    group1 = User.create_group(
+    group1 = Group.create_group(
         group_name=body['group_name'],
+        user_admin_id=body['user_admin_id'],
         description=body['description'] if 'description' in body else None,
-        target_time=body['target_time'] if 'target_time' in body else None,
         group_url=BASE_URL+"groups/"+body['group_name']+url_group_random,#revisar construcción de url única para cada user
         url_image=None#Esto debemos cambiarlo luego por una imagen predeterminada
     ) 
     return group1.serialize(), 200
+
+@app.route('/groups/<int:id_group>', methods=['PATCH'])
+def upgrade_group(id_group):
+    body = request.get_json()
+    group_to_upgrade = Group.query.get(id_group)
+
+    if group_to_upgrade is None:
+        raise APIException('You need to specify an existing group', status_code=400)
+    if 'group_name' in body  != None:
+        new_group_name = body['group_name']
+        group_to_upgrade.group_name = new_group_name
+    if 'description' in body  != None:
+        new_description = body['description']
+        group_to_upgrade.description = new_description
+    if 'url_image' in body != None:
+        new_url_image = body['url_image']
+        group_to_upgrade.url_image = new_url_image
+
+    db.session.commit()
+    return 'Cambio realizado'
+
+
+
+#----------------------------------------- endpoint Tasks ------------------------------------------------------------
+
+#Funcion para mostrar con una solicitud GET todas las tareas que se encuentran en un grupo determinado
+@app.route('/groups/<int:id_group>/tasks', methods=['GET'])
+def handle_tasks(id_group):
+    group = Group.query.get(id_group)
+    if group is None:
+        return "NO EXISTE", 404
+    if id_group is None:
+        raise APIException('You need to specify an existing group', status_code=400)
+    tasks = Task.query.filter_by(group_id=id_group)
+    response_body= []
+    for task in tasks:
+        response_body.append(task.serialize())
+    return jsonify(response_body),200
+
+
+@app.route('/groups/tasks', methods=['POST'])#Endpoint para crear una tarea
+def add_new_task():
+    body= request.get_json()
+    #validaciones de body para campos obligatorios
+    if isinstance (body,dict):
+        if body is None:
+            raise APIException("Please specify the request body as a json object", status_code=400)
+        if 'label_task' not in body:
+            raise APIException("You need to specify the name", status_code=400)
+        if 'group_id' not in body:
+            raise APIException("You need to specify the id group", status_code=400)
+
+    else: return "error in body, is not a dictionary"
+
+    task1 = Task.create_task(
+        group_id=body['group_id'],
+        label_task=body['label_task'],
+        status_text=body['status_text'] if 'status_text' in body else None,
+        status_task=body['status_task'] if 'status_task' in body else False,
+        top_date=body['top_date'] if 'top_date' in body else None,
+        init_date=time.strftime("%c")
+    ) 
+    return task1.serialize(), 200
+
+#Funcion para actualizar una propiedad de una tarea
+@app.route('/groups/tasks/<int:id_task>', methods=['PATCH'])
+def upgrade_task(id_task):
+    body = request.get_json()
+    task_to_upgrade = Task.query.get(id_task)
+    if task_to_upgrade is None:
+        raise APIException('You need to specify an existing task', status_code=400)
+    if 'label_task' in body  != None:
+        new_label_task = body['label_task']
+        task_to_upgrade.label_task = new_label_task
+    if 'status_text' in body  != None:
+        new_status_text = body['status_text']
+        task_to_upgrade.status_text = new_status_text
+    if 'status_task' in body != None:
+        new_status_task = body['status_task']
+        task_to_upgrade.status_task = new_status_task
+    if 'top_date' in body != None:
+        new_top_date = body['top_date']
+        task_to_upgrade.top_date = new_top_date
+
+    db.session.commit()
+    return 'Cambio realizado'
+
+#funcion para borrar una tarea
+@app.route('/groups/tasks/<int:id_task>', methods=['DELETE'])
+def delete_contact(id_task): 
+    db.session.delete(Task.query.get_or_404(id_task) )
+    db.session.commit() 
+    return '', 204
+
+
+#---------------------------------- endpoint Sale --------------------------------
+
+@app.route('/groups/sale', methods=['GET'])
+def handle_sales(id_group):
+    sales = Sale.query.filter_by(group_id=id_group)
+    response_body= []
+    for sale in sales:
+        response_body.append(sale.serialize())
+    return jsonify(response_body),200
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #this only runs if `$ python src/main.py` is executed.
 #Esto solo se ejecuta si se ejecuta `$ python src / main.py`.
 if __name__ == '__main__':

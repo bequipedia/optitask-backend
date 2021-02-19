@@ -68,11 +68,6 @@ class User(db.Model):
             f"{password}{self.salt}"
         )
 
-    def create_group(**kwargs):
-        new_group=Group(kwargs)
-        db.session.add(new_group)
-        db.session.commit()
-        return new_group
 
     def serialize(self):
         return {
@@ -92,9 +87,9 @@ class User(db.Model):
 class Group(db.Model):
 
     id=db.Column(db.Integer,primary_key=True)
+    user_admin_id=db.Column(db.Integer)
     group_name= db.Column(db.String(120), nullable=False)
     description= db.Column(db.String(250))
-    target_time=db.Column(db.String(120))
     group_url=db.Column(db.String(500),nullable=False, unique=True)
     url_image=db.Column(db.String(500))
 
@@ -105,18 +100,26 @@ class Group(db.Model):
 
     def __init__(self,body):
         self.group_name=body['group_name']
+        self.user_admin_id=body['user_admin_id']
         self.description=body['description']
-        self.target_time=body['target_time']
         self.group_url=body['group_url']
         self.url_image=body['url_image']
-        
+       
+
+    @classmethod
+    def create_group(cls,**kwargs):
+        new_group=cls(kwargs)
+        db.session.add(new_group)
+        db.session.commit()
+        return new_group
+         
 
     def serialize(self):
         return {
             "id":self.id,
+            "user_admin_id":self.user_admin_id,
             "group_name":self.group_name,
             "description":self.description,
-            "target_time":self.target_time,
             "group_url":self.group_url,
             "url_image":self.url_image
         }
@@ -126,6 +129,7 @@ class PersonGroup(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
     group_id=db.Column(db.Integer,db.ForeignKey('group.id'))
+
 
 
 class Sale(db.Model):
@@ -147,6 +151,14 @@ class Sale(db.Model):
         self.amount=body['amount']
         self.bank=body['bank']
         self.usd_amount=body['usd_amount']
+        self.group_id=body['group_id']
+
+    @classmethod
+    def create_sale(cls,**kwargs):
+        new_sale=cls(kwargs)
+        db.session.add(new_sale)
+        db.session.commit()
+        return new_sale
         
 
     def serialize(self):
@@ -157,7 +169,8 @@ class Sale(db.Model):
             "method_payment":self.method_payment,
             "amount":self.amount,
             "bank":self.bank,
-            "usd_amount":self.usd_amount
+            "usd_amount":self.usd_amount,
+            "group_id":self.group_id
         }
     
 class Expense(db.Model):
@@ -181,6 +194,14 @@ class Expense(db.Model):
         self.category=body['category']
         self.provider=body['provider']
         self.usd_amount=body['usd_amount']
+        self.group_id=body['group_id']
+
+    @classmethod
+    def create_expense(cls,**kwargs):
+        new_expense=cls(kwargs)
+        db.session.add(new_expense)
+        db.session.commit()
+        return new_expense
         
 
     def serialize(self):
@@ -192,15 +213,16 @@ class Expense(db.Model):
             "coin":self.coin,
             "category":self.category,
             "provider":self.provider,
-            "usd_amount":self.usd_amount
+            "usd_amount":self.usd_amount,
+            "group_id":self.group_id
         }
     
 class Task(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     label_task=db.Column(db.String(120),nullable=False)
-    status_text=db.Column(db.String(300),nullable=False)
-    status_task=db.Column(db.Boolean,nullable=False)
-    top_date=db.Column(db.String(120),nullable=False)
+    status_text=db.Column(db.String(300))
+    status_task=db.Column(db.Boolean)
+    top_date=db.Column(db.String(120))
     init_date=db.Column(db.String(120),nullable=False)
     
     user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -212,12 +234,21 @@ class Task(db.Model):
         self.status_task=body['status_task']
         self.top_date=body['top_date']
         self.init_date=body['init_date']
+        self.group_id=body['group_id']
+        
+    @classmethod
+    def create_task(cls,**kwargs):
+        new_task=cls(kwargs)
+        db.session.add(new_task)
+        db.session.commit()
+        return new_task
 
         
 
     def serialize(self):
         return {
             "id":self.id,
+            "group_id":self.group_id,
             "label_task":self.label_task,
             "status_text":self.status_text,
             "status_task":self.status_task,
