@@ -29,7 +29,7 @@ class User(db.Model):
     url=db.Column(db.String(500), unique=True)
     url_image=db.Column(db.String(500))
     user_registered=db.Column(db.String(50))
-
+    
     groups=db.relationship("PersonGroup",backref="user")
 
 #Esto es para crear el usuario
