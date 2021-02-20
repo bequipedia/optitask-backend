@@ -134,7 +134,9 @@ def handle_one_group(id_group):
         return jsonify(group.serialize()), 202
 
 @app.route('/groups', methods=['POST'])#Endpoint para crear un grupo
+@jwt_required
 def add_new_group():
+    email = get_jwt_identity()
     body= request.get_json()
     #validaciones de body para campos obligatorios
     if isinstance (body,dict):
@@ -155,8 +157,10 @@ def add_new_group():
         description=body['description'] if 'description' in body else None,
         group_url=BASE_URL+"groups/"+body['group_name']+url_group_random,#revisar construcción de url única para cada user
         url_image=None#Esto debemos cambiarlo luego por una imagen predeterminada
-    ) 
+    )
     return group1.serialize(), 200
+
+
 
 @app.route('/groups/<int:id_group>', methods=['PATCH'])
 def upgrade_group(id_group):
@@ -254,6 +258,7 @@ def delete_contact(id_task):
 
 #---------------------------------- endpoint Sale --------------------------------
 
+#
 @app.route('/groups/sale', methods=['GET'])
 def handle_sales(id_group):
     sales = Sale.query.filter_by(group_id=id_group)

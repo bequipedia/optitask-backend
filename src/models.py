@@ -87,7 +87,7 @@ class User(db.Model):
 class Group(db.Model):
 
     id=db.Column(db.Integer,primary_key=True)
-    user_admin_id=db.Column(db.Integer)
+    user_admin_id=db.Column(db.Integer, f)
     group_name= db.Column(db.String(120), nullable=False)
     description= db.Column(db.String(250))
     group_url=db.Column(db.String(500),nullable=False, unique=True)
