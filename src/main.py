@@ -12,7 +12,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User,Group,Task
+from models import db, User,Group,Task,PersonGroup,Sale,Expense
 from random import randint
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -43,6 +43,7 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+#Endpoint para ver los datos de todos los usuarios
 @app.route('/users', methods=['GET'])
 def handle_user():
     users = User.query.all()
@@ -50,6 +51,15 @@ def handle_user():
     for user in users:
         response_body.append(user.serialize())
     return jsonify(response_body),200
+
+#Endpoint para ver los datos de un usuario
+@app.route('/users/<int:id_user>', methods=['GET'])
+def handle_one_user(id_user):
+    user = User.query.get(id_user)
+    if group is None:
+        return "NO EXISTE", 404
+    else:
+        return jsonify(user.serialize()), 202
 
 #endpoint User para crear nuevos usuarios
 @app.route('/users', methods=['POST'])
@@ -81,6 +91,7 @@ def add_new_user():
         url_image=None,#Esto debemos cambiarlo luego por una imagen predeterminada
         user_registered=time.strftime("%c"))
     return user1.serialize(), 200
+
 
 @app.route("/login", methods=["POST"])
 def handle_login():
@@ -125,7 +136,8 @@ def handle_seguro():
 
 #----------------------------------------------endpoint groups--------------------------------------------------------
 
-@app.route('/groups/<int:id_group>', methods=['GET'])#endpoint para ver los datos de un grupo
+#Endpoint para ver los datos de un grupo
+@app.route('/groups/<int:id_group>', methods=['GET'])
 def handle_one_group(id_group):
     group = Group.query.get(id_group)
     if group is None:
@@ -133,10 +145,10 @@ def handle_one_group(id_group):
     else:
         return jsonify(group.serialize()), 202
 
-@app.route('/groups', methods=['POST'])#Endpoint para crear un grupo
-@jwt_required
+#Endpoint para crear un grupo
+@app.route('/groups', methods=['POST'])
 def add_new_group():
-    email = get_jwt_identity()
+    #email = get_jwt_identity()
     body= request.get_json()
     #validaciones de body para campos obligatorios
     if isinstance (body,dict):
@@ -160,8 +172,30 @@ def add_new_group():
     )
     return group1.serialize(), 200
 
+#Endpoint para agregar un usuario en un grupo ya creado
+#Despues de crear un grupo se deberia realizar este endpoint que permite colacar el id del
+#usuario en el grupo
+@app.route('/persongroup', methods=['POST'])
+def add_new_person_group():
+    #email = get_jwt_identity()
+    body= request.get_json()
+    #validaciones de body para campos obligatorios
+    if isinstance (body,dict):
+        if body is None:
+            raise APIException("Please specify the request body as a json object", status_code=400)
+        if 'user_id' not in body:
+            raise APIException("You need to specify the id user", status_code=400)
+        if 'group_id' not in body:
+            raise APIException("You need to specify the id group", status_code=400)
 
+    else: return "error in body, is not a dictionary"
+    person_group1 = PersonGroup.create_person_group(
+        user_id=body['user_id'],
+        group_id=body['group_id']
+    )
+    return person_group1.serialize(), 200
 
+#Este endpoint permite realizar un cambio en alguna propiedad de un grupo
 @app.route('/groups/<int:id_group>', methods=['PATCH'])
 def upgrade_group(id_group):
     body = request.get_json()
@@ -182,13 +216,48 @@ def upgrade_group(id_group):
     db.session.commit()
     return 'Cambio realizado'
 
+#----------------------------- Utilizando relacion PersonGroup---------------------------
+
+#Este endpoint permite ver los datos de todos los usuarios de un grupo
+@app.route('/users/groups/<int:id_group>', methods=['GET'])
+def handle_user_group(id_group):
+    group = Group.query.get(id_group)
+    if group is None:
+        return "NO EXISTE", 404
+    else:
+        relaciones=PersonGroup.query.filter_by(group_id=id_group)
+        all_users=[]
+        for relacion in relaciones:
+            all_users.append(relacion.serialize())
+        response_body= []
+        for user1 in all_users:
+            response_body.append(User.query.get(user1['user_id']).serialize())
+            
+        return jsonify(response_body),200
+
+#Este endpoint permite ver los datos de todos los grupos de un usuario
+@app.route('/users/<int:id_user>/groups', methods=['GET'])
+def handle_group_user(id_user):
+    user = User.query.get(id_user)
+    if user is None:
+        return "NO EXISTE", 404
+    else:
+        relaciones=PersonGroup.query.filter_by(user_id=id_user)
+        all_groups=[]
+        for relacion in relaciones:
+            all_groups.append(relacion.serialize())
+        response_body= []
+        for group1 in all_groups:
+            response_body.append(Group.query.get(group1['group_id']).serialize())
+    return jsonify(response_body),200
+
 
 
 #----------------------------------------- endpoint Tasks ------------------------------------------------------------
 
-#Funcion para mostrar con una solicitud GET todas las tareas que se encuentran en un grupo determinado
+#Funcion para mostrar todas las tareas de un grupo 
 @app.route('/groups/<int:id_group>/tasks', methods=['GET'])
-def handle_tasks(id_group):
+def handle_group_tasks(id_group):
     group = Group.query.get(id_group)
     if group is None:
         return "NO EXISTE", 404
@@ -200,8 +269,22 @@ def handle_tasks(id_group):
         response_body.append(task.serialize())
     return jsonify(response_body),200
 
+#Funcion para mostrar todas las tareas de un usuario 
+@app.route('/users/<int:id_user>/tasks', methods=['GET'])
+def handle_user_tasks(id_user):
+    user = User.query.get(id_user)
+    if user is None:
+        return "NO EXISTE", 404
+    if id_user is None:
+        raise APIException('You need to specify an existing user', status_code=400)
+    tasks = Task.query.filter_by(user_id=id_user)
+    response_body= []
+    for task in tasks:
+        response_body.append(task.serialize())
+    return jsonify(response_body),200
 
-@app.route('/groups/tasks', methods=['POST'])#Endpoint para crear una tarea
+#Endpoint para crear una tarea
+@app.route('/tasks', methods=['POST'])
 def add_new_task():
     body= request.get_json()
     #validaciones de body para campos obligatorios
@@ -212,11 +295,14 @@ def add_new_task():
             raise APIException("You need to specify the name", status_code=400)
         if 'group_id' not in body:
             raise APIException("You need to specify the id group", status_code=400)
+        if 'user_id' not in body:
+            raise APIException("You need to specify the id group", status_code=400)
 
     else: return "error in body, is not a dictionary"
 
     task1 = Task.create_task(
         group_id=body['group_id'],
+        user_id=body['user_id'],
         label_task=body['label_task'],
         status_text=body['status_text'] if 'status_text' in body else None,
         status_task=body['status_task'] if 'status_task' in body else False,
@@ -226,7 +312,7 @@ def add_new_task():
     return task1.serialize(), 200
 
 #Funcion para actualizar una propiedad de una tarea
-@app.route('/groups/tasks/<int:id_task>', methods=['PATCH'])
+@app.route('/tasks/<int:id_task>', methods=['PATCH'])
 def upgrade_task(id_task):
     body = request.get_json()
     task_to_upgrade = Task.query.get(id_task)
@@ -249,8 +335,8 @@ def upgrade_task(id_task):
     return 'Cambio realizado'
 
 #funcion para borrar una tarea
-@app.route('/groups/tasks/<int:id_task>', methods=['DELETE'])
-def delete_contact(id_task): 
+@app.route('/tasks/<int:id_task>', methods=['DELETE'])
+def delete_task(id_task): 
     db.session.delete(Task.query.get_or_404(id_task) )
     db.session.commit() 
     return '', 204
@@ -258,31 +344,156 @@ def delete_contact(id_task):
 
 #---------------------------------- endpoint Sale --------------------------------
 
-#
-@app.route('/groups/sale', methods=['GET'])
-def handle_sales(id_group):
+#Funcion para mostrar todas las ventas de un grupo 
+@app.route('/groups/<int:id_group>/sales', methods=['GET'])
+def handle_group_sales(id_group):
+    group = Group.query.get(id_group)
+    if group is None:
+        return "NO EXISTE", 404
+    if id_group is None:
+        raise APIException('You need to specify an existing group', status_code=400)
     sales = Sale.query.filter_by(group_id=id_group)
     response_body= []
     for sale in sales:
         response_body.append(sale.serialize())
     return jsonify(response_body),200
 
+#Funcion para mostrar todas las ventas de un usuario 
+@app.route('/users/<int:id_user>/sales', methods=['GET'])
+def handle_user_sales(id_user):
+    user = User.query.get(id_user)
+    if user is None:
+        return "NO EXISTE", 404
+    if id_user is None:
+        raise APIException('You need to specify an existing user', status_code=400)
+    sales = Sale.query.filter_by(user_id=id_user)
+    response_body= []
+    for sale in sales:
+        response_body.append(sale.serialize())
+    return jsonify(response_body),200
+
+#Endpoint para crear una venta
+@app.route('/sales', methods=['POST'])
+def add_new_sale():
+    body= request.get_json()
+    #validaciones de body para campos obligatorios
+    if isinstance (body,dict):
+        if body is None:
+            raise APIException("Please specify the request body as a json object", status_code=400)
+        if 'description' not in body:
+            raise APIException("You need to specify description", status_code=400)
+        if 'amount' not in body:
+            raise APIException("You need to specify amount", status_code=400)
+        if 'usd_amount' not in body:
+            raise APIException("You need to specify usd_amount", status_code=400)
+        
+        if 'method_payment' not in body:
+            raise APIException("You need to specify the method_payment", status_code=400)
+        
+        if 'group_id' not in body:
+            raise APIException("You need to specify the id group", status_code=400)
+        if 'user_id' not in body:
+            raise APIException("You need to specify the id user", status_code=400)
+
+    else: return "error in body, is not a dictionary"
+
+    sale1 = Sale.create_sale(
+        group_id=body['group_id'],
+        user_id=body['user_id'],
+        description=body['description'],
+        amount=body['amount'],
+        bank=body['bank'] if 'bank' in body else None,
+        usd_amount=body['usd_amount'],
+        method_payment=body['method_payment'],
+        date=body['date'] if 'date' in body else time.strftime("%c")
+    ) 
+    return sale1.serialize(), 200
 
 
+#funcion para borrar una venta
+@app.route('/sales/<int:id_sale>', methods=['DELETE'])
+def delete_sale(id_sale): 
+    db.session.delete(Sale.query.get_or_404(id_sale) )
+    db.session.commit() 
+    return '', 204
+
+#---------------------------------- endpoint Expense --------------------------------
+
+#Endpoint para mostrar todos los gastos de un grupo 
+@app.route('/groups/<int:id_group>/expenses', methods=['GET'])
+def handle_group_expenses(id_group):
+    group = Group.query.get(id_group)
+    if group is None:
+        return "NO EXISTE", 404
+    if id_group is None:
+        raise APIException('You need to specify an existing group', status_code=400)
+    expenses = Expense.query.filter_by(group_id=id_group)
+    response_body= []
+    for expense in expenses:
+        response_body.append(expense.serialize())
+    return jsonify(response_body),200
+
+#Endpoint para mostrar todos los gastos de un usuario 
+@app.route('/users/<int:id_user>/expenses', methods=['GET'])
+def handle_user_expenses(id_user):
+    user = User.query.get(id_user)
+    if user is None:
+        return "NO EXISTE", 404
+    if id_user is None:
+        raise APIException('You need to specify an existing user', status_code=400)
+    expenses = Expense.query.filter_by(user_id=id_user)
+    response_body= []
+    for expense in expenses:
+        response_body.append(expense.serialize())
+    return jsonify(response_body),200
+
+#Endpoint para crear un gasto
+@app.route('/expenses', methods=['POST'])
+def add_new_expense():
+    body= request.get_json()
+    #validaciones de body para campos obligatorios
+    if isinstance (body,dict):
+        if body is None:
+            raise APIException("Please specify the request body as a json object", status_code=400)
+        if 'description' not in body:
+            raise APIException("You need to specify description", status_code=400)
+        if 'coin' not in body:
+            raise APIException("You need to specify coin", status_code=400)
+        if 'usd_amount' not in body:
+            raise APIException("You need to specify usd_amount", status_code=400)
+        
+        if 'method_payment' not in body:
+            raise APIException("You need to specify the method_payment", status_code=400)
+        if 'category' not in body:
+            raise APIException("You need to specify the category", status_code=400)
+        
+        if 'group_id' not in body:
+            raise APIException("You need to specify the id group", status_code=400)
+        if 'user_id' not in body:
+            raise APIException("You need to specify the id user", status_code=400)
+
+    else: return "error in body, is not a dictionary"
+
+    expense1 = Expense.create_expense(
+        group_id=body['group_id'],
+        user_id=body['user_id'],
+        description=body['description'],
+        coin=body['coin'],
+        category=body['category'],
+        usd_amount=body['usd_amount'],
+        method_payment=body['method_payment'],
+        provider=body['provider'] if 'provider' in body else None,
+        date=body['date'] if 'date' in body else time.strftime("%c")
+    ) 
+    return expense1.serialize(), 200
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+#funcion para borrar un gasto
+@app.route('/expenses/<int:id_expense>', methods=['DELETE'])
+def delete_expense(id_expense): 
+    db.session.delete(Expense.query.get_or_404(id_expense) )
+    db.session.commit() 
+    return '', 204
 
 
 
