@@ -29,8 +29,12 @@ class User(db.Model):
     url=db.Column(db.String(500), unique=True)
     url_image=db.Column(db.String(500))
     user_registered=db.Column(db.String(50))
-    
+
+    create_groups=db.relationship("Group",backref="user")
     groups=db.relationship("PersonGroup",backref="user")
+    tasks=db.relationship("Task",backref="user")
+    sales=db.relationship("Sale",backref="user")
+    expenses=db.relationship("Expense",backref="user")
 
 #Esto es para crear el usuario
     @classmethod
@@ -87,7 +91,7 @@ class User(db.Model):
 class Group(db.Model):
 
     id=db.Column(db.Integer,primary_key=True)
-    user_admin_id=db.Column(db.Integer)
+    user_admin_id=db.Column(db.Integer, db.ForeignKey('user.id'))
     group_name= db.Column(db.String(120), nullable=False)
     description= db.Column(db.String(250))
     group_url=db.Column(db.String(500),nullable=False, unique=True)
@@ -130,6 +134,25 @@ class PersonGroup(db.Model):
     user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
     group_id=db.Column(db.Integer,db.ForeignKey('group.id'))
 
+    def __init__(self,body):
+        self.user_id=body['user_id']
+        self.group_id=body['group_id']
+
+
+    @classmethod
+    def create_person_group(cls,**kwargs):
+        new_person_group=cls(kwargs)
+        db.session.add(new_person_group)
+        db.session.commit()
+        return new_person_group
+    
+    def serialize(self):
+        return {
+            "id":self.id,
+            "user_id":self.user_id,
+            "group_id":self.group_id
+        }
+
 
 
 class Sale(db.Model):
@@ -138,7 +161,7 @@ class Sale(db.Model):
     description=db.Column(db.String(300),nullable=False)
     method_payment=db.Column(db.String(120),nullable=False)
     amount=db.Column(db.String(120),nullable=False)
-    bank=db.Column(db.String(120),nullable=False)
+    bank=db.Column(db.String(120))
     usd_amount=db.Column(db.Float,nullable=False)
 
     user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -152,6 +175,7 @@ class Sale(db.Model):
         self.bank=body['bank']
         self.usd_amount=body['usd_amount']
         self.group_id=body['group_id']
+        self.user_id=body['user_id']
 
     @classmethod
     def create_sale(cls,**kwargs):
@@ -195,6 +219,7 @@ class Expense(db.Model):
         self.provider=body['provider']
         self.usd_amount=body['usd_amount']
         self.group_id=body['group_id']
+        self.user_id=body['user_id']
 
     @classmethod
     def create_expense(cls,**kwargs):
@@ -214,7 +239,8 @@ class Expense(db.Model):
             "category":self.category,
             "provider":self.provider,
             "usd_amount":self.usd_amount,
-            "group_id":self.group_id
+            "group_id":self.group_id,
+            "user_id":self.user_id
         }
     
 class Task(db.Model):
@@ -235,6 +261,7 @@ class Task(db.Model):
         self.top_date=body['top_date']
         self.init_date=body['init_date']
         self.group_id=body['group_id']
+        self.user_id=body['user_id']
         
     @classmethod
     def create_task(cls,**kwargs):
@@ -249,10 +276,11 @@ class Task(db.Model):
         return {
             "id":self.id,
             "group_id":self.group_id,
+            "user_id":self.user_id,
             "label_task":self.label_task,
             "status_text":self.status_text,
             "status_task":self.status_task,
             "top_date":self.top_date,
-            "init_date":self.init_date,
+            "init_date":self.init_date
 
         }
