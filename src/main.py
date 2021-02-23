@@ -498,6 +498,7 @@ def add_new_expense():
         usd_amount=body['usd_amount'],
         rate_to_dolar=body['rate_to_dolar'],
         category=body['category'],
+        bank=body['bank'],
         provider=body['provider'],
         description=body['description'] if 'description' in body else None,
     ) 

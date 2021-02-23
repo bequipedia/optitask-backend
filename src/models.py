@@ -220,6 +220,7 @@ class Expense(db.Model):
     usd_amount=db.Column(db.Float,nullable=False)
     rate_to_dolar=db.Column(db.Float,nullable=False)
     category=db.Column(db.String(120),nullable=False)
+    bank=db.Column(db.String(120))
     provider=db.Column(db.String(120),nullable=False)
     description=db.Column(db.String(300))
     
@@ -236,6 +237,7 @@ class Expense(db.Model):
         self.rate_to_dolar=body['rate_to_dolar']
         self.category=body['category']
         self.provider=body['provider']
+        self.bank=body['bank']
         self.description=body['description']
         self.group_id=body['group_id']
         self.user_id=body['user_id']
@@ -259,6 +261,7 @@ class Expense(db.Model):
             "rate_to_dolar":self.rate_to_dolar,
             "category":self.category,
             "provider":self.provider,
+            "bank": self.bank,
             "description":self.description,
             "group_id":self.group_id,
             "user_id":self.user_id
