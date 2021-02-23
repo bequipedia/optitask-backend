@@ -28,12 +28,12 @@ class User(db.Model):
     salt=db.Column(db.String(120), nullable=False)#Esto es un numero aleatorio que sera agregado al password
     url=db.Column(db.String(500), unique=True)
     url_image=db.Column(db.String(500))
-    user_registered=db.Column(db.String(50))
+    user_registered=db.Column(db.String(120))
 
     create_groups=db.relationship("Group",backref="user")
     groups=db.relationship("PersonGroup",backref="user")
     tasks=db.relationship("Task",backref="user")
-    sales=db.relationship("Sale",backref="user")
+    incomes=db.relationship("Income",backref="user")
     expenses=db.relationship("Expense",backref="user")
 
 #Esto es para crear el usuario
@@ -85,7 +85,10 @@ class User(db.Model):
             "country":self.country,
             "country_code":self.country_code,
             "region_state":self.region_state,
-            "municipality":self.municipality
+            "municipality":self.municipality,
+            "url":self.url,
+            "url_image":self.url_image,
+            "user_registered":self.user_registered
         }
 
 class Group(db.Model):
@@ -99,7 +102,7 @@ class Group(db.Model):
 
     users=db.relationship("PersonGroup",backref="group")
     expenses=db.relationship("Expense",backref="group")
-    sales=db.relationship("Sale",backref="group")
+    incomes=db.relationship("Income",backref="group")
     tasks=db.relationship("Task",backref="group")
 
     def __init__(self,body):
@@ -155,69 +158,85 @@ class PersonGroup(db.Model):
 
 
 
-class Sale(db.Model):
+class Income(db.Model): #es el equivalente a income del front
     id=db.Column(db.Integer, primary_key=True)
     date=db.Column(db.String(120),nullable=False)
-    description=db.Column(db.String(300),nullable=False)
+    coin=db.Column(db.String(100),nullable=False)
+    payment=db.Column(db.String(300),nullable=False)
     method_payment=db.Column(db.String(120),nullable=False)
-    amount=db.Column(db.String(120),nullable=False)
-    bank=db.Column(db.String(120))
+    amount=db.Column(db.Float,nullable=False)
     usd_amount=db.Column(db.Float,nullable=False)
+    rate_to_dolar=db.Column(db.Float,nullable=False)
+    bank=db.Column(db.String(120))
+    description=db.Column(db.String(100))
 
     user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
     group_id=db.Column(db.Integer,db.ForeignKey('group.id'))
 
     def __init__(self,body):
-        self.date=body['date']
-        self.description=body['description']
+        self.DateTime=body['date']
+        self.coin=body['coin']
+        self.payment=body['payment']
         self.method_payment=body['method_payment']
         self.amount=body['amount']
-        self.bank=body['bank']
         self.usd_amount=body['usd_amount']
+        self.rate_to_dolar=body['rate_to_dolar']
+        self.bank=body['bank']
+        self.description=body['description']
+
         self.group_id=body['group_id']
         self.user_id=body['user_id']
 
     @classmethod
-    def create_sale(cls,**kwargs):
-        new_sale=cls(kwargs)
-        db.session.add(new_sale)
+    def create_income(cls,**kwargs):
+        new_income=cls(kwargs)
+        db.session.add(new_income)
         db.session.commit()
-        return new_sale
+        return new_income
         
 
     def serialize(self):
         return {
             "id":self.id,
             "date":self.date,
-            "description":self.description,
+            "coin":self.coin,
+            "payment": self.payment,
             "method_payment":self.method_payment,
             "amount":self.amount,
+            "usd_amount":self.usd_amount, 
+            "rate_to_dolar": self.rate_to_dolar, 
             "bank":self.bank,
-            "usd_amount":self.usd_amount,
+            "description":self.description,
             "group_id":self.group_id
         }
     
 class Expense(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     date=db.Column(db.String(120),nullable=False)
-    description=db.Column(db.String(300),nullable=False)
-    method_payment=db.Column(db.String(120),nullable=False)
-    usd_amount=db.Column(db.Float,nullable=False)
     coin=db.Column(db.String(120),nullable=False)
+    payment=db.Column(db.String(300),nullable=False)
+    method_payment=db.Column(db.String(120),nullable=False)
+    amount=db.Column(db.Float,nullable=False)
+    usd_amount=db.Column(db.Float,nullable=False)
+    rate_to_dolar=db.Column(db.Float,nullable=False)
     category=db.Column(db.String(120),nullable=False)
     provider=db.Column(db.String(120),nullable=False)
+    description=db.Column(db.String(300))
     
     user_id=db.Column(db.Integer, db.ForeignKey('user.id'))
     group_id=db.Column(db.Integer,db.ForeignKey('group.id'))
 
     def __init__(self,body):
         self.date=body['date']
-        self.description=body['description']
-        self.method_payment=body['method_payment']
         self.coin=body['coin']
+        self.payment=body['payment']
+        self.method_payment=body['method_payment']
+        self.amount=body['amount']
+        self.usd_amount=body['usd_amount']
+        self.rate_to_dolar=body['rate_to_dolar']
         self.category=body['category']
         self.provider=body['provider']
-        self.usd_amount=body['usd_amount']
+        self.description=body['description']
         self.group_id=body['group_id']
         self.user_id=body['user_id']
 
@@ -228,17 +247,19 @@ class Expense(db.Model):
         db.session.commit()
         return new_expense
         
-
     def serialize(self):
         return {
             "id":self.id,
             "date":self.date,
-            "description":self.description,
-            "method_payment":self.method_payment,
             "coin":self.coin,
+            "payment": self.payment,
+            "method_payment":self.method_payment,
+            "amount": self.amount,
+            "usd_amount":self.usd_amount,
+            "rate_to_dolar":self.rate_to_dolar,
             "category":self.category,
             "provider":self.provider,
-            "usd_amount":self.usd_amount,
+            "description":self.description,
             "group_id":self.group_id,
             "user_id":self.user_id
         }
@@ -268,9 +289,7 @@ class Task(db.Model):
         new_task=cls(kwargs)
         db.session.add(new_task)
         db.session.commit()
-        return new_task
-
-        
+        return new_task      
 
     def serialize(self):
         return {
@@ -282,5 +301,33 @@ class Task(db.Model):
             "status_task":self.status_task,
             "top_date":self.top_date,
             "init_date":self.init_date
+        }
 
+class Rate(db.Model):
+    id=db.Column(db.Integer, primary_key=True)
+    coin=db.Column(db.String(120),nullable=False)
+    symbol=db.Column(db.String(6),nullable=False)
+    rate_to_dolar=db.Column(db.Float,nullable=False)
+    last_update=db.Column(db.String(120),nullable=False)
+
+    def __init__(self,body):
+        self.coin=body['coin']
+        self.symbol=body['symbol']
+        self.rate_to_dolar=body['rate_to_dolar']
+        self.last_update=body['last_update']
+
+    @classmethod
+    def create_rate(cls,**kwargs):
+        new_rate=cls(kwargs)
+        db.session.add(new_rate)
+        db.session.commit()
+        return new_rate 
+
+    def serialize(self):
+        return {
+            "id":self.id,
+            "coin":self.coin,
+            "symbol":self.symbol,
+            "rate_to_dolar":self.rate_to_dolar,
+            "last_update":self.last_update
         }
