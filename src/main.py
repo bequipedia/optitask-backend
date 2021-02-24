@@ -62,6 +62,15 @@ def handle_one_user(id_user):
     else:
         return jsonify(user.serialize()), 202
 
+#Endpoint para obtener id_user de un usuario a partir de su EMAIL 
+@app.route('/users/<email>', methods=['GET'])
+def handle_one_user_email(email):
+    user = User.query.filter_by(email=email)
+    if user is None:
+        return "NO EXISTE", 404
+    else:
+        return jsonify(User.user.id), 202
+
 #endpoint User para crear nuevos usuarios (Probado con POSTMAN.OK)
 @app.route('/users', methods=['POST'])
 def add_new_user():
@@ -91,7 +100,7 @@ def add_new_user():
         municipality=None,
         url=BASE_URL+"users/"+body['user_name'],#revisar construcción de url única para cada user
         url_image=None,#Esto debemos cambiarlo luego por una imagen predeterminada
-        user_registered=now.strftime('%Y-%m-%d %H:%M:%S'))
+        user_registered=now.strftime('%d-%m-%Y'))
     return user1.serialize(), 200
 
 #endpoint para el login de un usuario (Probado con POSTMAN.OK)
@@ -117,8 +126,10 @@ def handle_login():
     if not user:
         return jsonify({"msg": "User does not exist / El usuario no existe"}), 404
     if user.check_password(password):
-        response = {'jwt': create_access_token(identity=user.email)}
-        return jsonify(response), 200
+        jwt= create_access_token(identity=user.id)
+        ret = user.serialize()
+        ret["jwt"]=jwt
+        return jsonify(ret), 200
     else:
         return jsonify({"msg": "Bad credentials / Credenciales incorrectas"}), 401
 
@@ -129,7 +140,7 @@ def handle_seguro():
     email = get_jwt_identity()
     # nos devolvera la identidad del token.
     # will return the identity of the token.
-    return jsonify({"msg":f"Hello, {email}"})
+    return jsonify({"email": {email}})
 
 #For the Logout function, it is not necessary to do it in the backend, 
 #because the Logout will be done directly in the frontend.
@@ -310,7 +321,7 @@ def add_new_task():
         status_text=body['status_text'] if 'status_text' in body else None,
         status_task=body['status_task'] if 'status_task' in body else False,
         top_date=body['top_date'] if 'top_date' in body else None,
-        init_date=now.strftime('%Y-%m-%d %H:%M:%S'))
+        init_date=now.strftime('%d-%m-%Y'))
     return task1.serialize(), 200
 
 #Funcion para actualizar una propiedad de una tarea
@@ -406,7 +417,7 @@ def add_new_income():
     income1 = Income.create_income(
         group_id=body['group_id'],
         user_id=body['user_id'],
-        date=body['date'] if 'date' in body else now.strftime('%Y-%m-%d %H:%M:%S'),
+        date=body['date'] if 'date' in body else now.strftime('%d-%m-%Y'),
         coin=body['coin'],
         payment=body['payment'],
         method_payment=body['method_payment'],
@@ -441,7 +452,6 @@ def handle_group_expenses(id_group):
     for expense in expenses:
         response_body.append(expense.serialize())
     return jsonify(response_body),200
-
 #Endpoint para mostrar todos los gastos de un usuario 
 @app.route('/users/<int:id_user>/expenses', methods=['GET'])
 def handle_user_expenses(id_user):
@@ -490,7 +500,7 @@ def add_new_expense():
     expense1 = Expense.create_expense(
         group_id=body['group_id'],
         user_id=body['user_id'],
-        date=body['date'] if 'date' in body else now.strftime('%Y-%m-%d %H:%M:%S'),
+        date=body['date'] if 'date' in body else now.strftime('%d-%m-%Y'),
         coin=body['coin'],
         payment=body['payment'],
         method_payment=body['method_payment'],
@@ -512,7 +522,7 @@ def delete_expense(id_expense):
     db.session.commit() 
     return '', 204
 
-#Endpoint para registrar tipos de cambio (para usuario administrador de la app}/ no es para cliente)
+#Endpoint para registrar tipos de cambio PROBADO CON REQBIN OK
 @app.route('/rates', methods=['POST'])
 def add_exchange_rate():
     body= request.get_json()
@@ -532,11 +542,11 @@ def add_exchange_rate():
         coin=body['coin'],
         symbol=body['symbol'],
         rate_to_dolar=body['rate_to_dolar'],
-        last_update= now.strftime('%Y-%m-%d %H:%M:%S')
+        last_update= now.strftime('%d-%m-%Y')
         )
     return rate1.serialize(), 200
 
-#Endpoint para consultar todos los registros de tipos de cambio
+#Endpoint para consultar todos los registros de tipos de cambio PROBADO OK CON REQBIN
 @app.route('/rates', methods=['GET'])
 def handle_rates():
     exchanges_rates = Rate.query.all()
