@@ -100,7 +100,7 @@ def add_new_user():
         municipality=None,
         url=BASE_URL+"users/"+body['user_name'],#revisar construcción de url única para cada user
         url_image=None,#Esto debemos cambiarlo luego por una imagen predeterminada
-        user_registered=now.strftime('%d-%m-%Y'))
+        user_registered=now.strftime('%m-%d-%Y'))
     return user1.serialize(), 200
 
 #endpoint para el login de un usuario (Probado con POSTMAN.OK)
@@ -323,7 +323,7 @@ def add_new_task():
         status_text=body['status_text'] if 'status_text' in body else None,
         status_task=body['status_task'] if 'status_task' in body else False,
         top_date=body['top_date'] if 'top_date' in body else None,
-        init_date=now.strftime('%d-%m-%Y'))
+        init_date=now.strftime('%m-%d-%Y'))
     return task1.serialize(), 200
 
 #Funcion para actualizar una propiedad de una tarea
@@ -419,7 +419,7 @@ def add_new_income():
     income1 = Income.create_income(
         group_id=body['group_id'],
         user_id=body['user_id'],
-        date=body['date'] if 'date' in body else now.strftime('%d-%m-%Y'),
+        date=body['date'] if 'date' in body else now.strftime('%m-%d-%Y'),
         coin=body['coin'],
         payment=body['payment'],
         method_payment=body['method_payment'],
@@ -502,7 +502,7 @@ def add_new_expense():
     expense1 = Expense.create_expense(
         group_id=body['group_id'],
         user_id=body['user_id'],
-        date=body['date'] if 'date' in body else now.strftime('%d-%m-%Y'),
+        date=body['date'] if 'date' in body else now.strftime('%m-%d-%Y'),
         coin=body['coin'],
         payment=body['payment'],
         method_payment=body['method_payment'],
@@ -544,7 +544,7 @@ def add_exchange_rate():
         coin=body['coin'],
         symbol=body['symbol'],
         rate_to_dolar=body['rate_to_dolar'],
-        last_update= now.strftime('%d-%m-%Y')
+        last_update= now.strftime('%m-%d-%Y')
         )
     return rate1.serialize(), 200
 
