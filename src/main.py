@@ -134,13 +134,13 @@ def handle_login():
         return jsonify({"msg": "Bad credentials / Credenciales incorrectas"}), 401
 
 #endpoint para devolver la identidad de un token de usuario (login recien iniciado, y al probar da ERROR: TOKEN EXPIRADO)--PRUEBA CON REQBIN.OK
-@app.route("/seguro") 
-@jwt_required
-def handle_seguro():
-    email = get_jwt_identity()
-    # nos devolvera la identidad del token.
-    # will return the identity of the token.
-    return jsonify({"email": {email}})
+# @app.route("/seguro") 
+# @jwt_required
+# def handle_seguro():
+#     email = get_jwt_identity()
+#     # nos devolvera la identidad del token.
+#     # will return the identity of the token.
+#     return jsonify({"email": {email}})
 
 #For the Logout function, it is not necessary to do it in the backend, 
 #because the Logout will be done directly in the frontend.
@@ -263,6 +263,8 @@ def handle_group_user(id_user):
         response_body= []
         for group1 in all_groups:
             response_body.append(Group.query.get(group1['group_id']).serialize())
+    created_groups=[g.serialize() for g in user.create_groups]
+    response_body.append(*created_groups)
     return jsonify(response_body),200
 
 
