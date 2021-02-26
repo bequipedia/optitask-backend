@@ -264,8 +264,7 @@ def handle_group_user(id_user):
         for group1 in all_groups:
             response_body.append(Group.query.get(group1['group_id']).serialize())
     created_groups=[g.serialize() for g in user.create_groups]
-    response_body.append(*created_groups)
-    return jsonify(response_body),200
+    return jsonify(created_groups),200
 
 
 
