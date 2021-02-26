@@ -174,7 +174,7 @@ class Income(db.Model): #es el equivalente a income del front
     group_id=db.Column(db.Integer,db.ForeignKey('group.id'))
 
     def __init__(self,body):
-        self.DateTime=body['date']
+        self.date=body['date']
         self.coin=body['coin']
         self.payment=body['payment']
         self.method_payment=body['method_payment']

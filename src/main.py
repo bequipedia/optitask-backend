@@ -439,34 +439,6 @@ def delete_income(id_income):
     return '', 204
 
 #---------------------------------- endpoint Expense --------------------------------
-
-#Endpoint para mostrar todos los gastos de un grupo 
-@app.route('/groups/<int:id_group>/expenses', methods=['GET'])
-def handle_group_expenses(id_group):
-    group = Group.query.get(id_group)
-    if group is None:
-        return "NO EXISTE", 404
-    if id_group is None:
-        raise APIException('You need to specify an existing group', status_code=400)
-    expenses = Expense.query.filter_by(group_id=id_group)
-    response_body= []
-    for expense in expenses:
-        response_body.append(expense.serialize())
-    return jsonify(response_body),200
-#Endpoint para mostrar todos los gastos de un usuario 
-@app.route('/users/<int:id_user>/expenses', methods=['GET'])
-def handle_user_expenses(id_user):
-    user = User.query.get(id_user)
-    if user is None:
-        return "NO EXISTE", 404
-    if id_user is None:
-        raise APIException('You need to specify an existing user', status_code=400)
-    expenses = Expense.query.filter_by(user_id=id_user)
-    response_body= []
-    for expense in expenses:
-        response_body.append(expense.serialize())
-    return jsonify(response_body),200
-
 #Endpoint para crear un gasto
 @app.route('/expenses', methods=['POST'])
 def add_new_expense():
@@ -514,6 +486,33 @@ def add_new_expense():
         description=body['description'] if 'description' in body else None,
     ) 
     return expense1.serialize(), 200
+
+#Endpoint para mostrar todos los gastos de un grupo 
+@app.route('/groups/<int:id_group>/expenses', methods=['GET'])
+def handle_group_expenses(id_group):
+    group = Group.query.get(id_group)
+    if group is None:
+        return "NO EXISTE", 404
+    if id_group is None:
+        raise APIException('You need to specify an existing group', status_code=400)
+    expenses = Expense.query.filter_by(group_id=id_group)
+    response_body= []
+    for expense in expenses:
+        response_body.append(expense.serialize())
+    return jsonify(response_body),200
+#Endpoint para mostrar todos los gastos de un usuario 
+@app.route('/users/<int:id_user>/expenses', methods=['GET'])
+def handle_user_expenses(id_user):
+    user = User.query.get(id_user)
+    if user is None:
+        return "NO EXISTE", 404
+    if id_user is None:
+        raise APIException('You need to specify an existing user', status_code=400)
+    expenses = Expense.query.filter_by(user_id=id_user)
+    response_body= []
+    for expense in expenses:
+        response_body.append(expense.serialize())
+    return jsonify(response_body),200
 
 
 #funcion para borrar un gasto
